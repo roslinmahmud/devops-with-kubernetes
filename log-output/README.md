@@ -1,0 +1,1 @@
+Deploy with ```kubectl create deployment logoutput-dep --image=roslinmahmud/log-output```
