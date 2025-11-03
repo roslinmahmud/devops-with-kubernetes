@@ -1,0 +1,1 @@
+Deploy with ```kubectl create deployment todoapp-dep --image=roslinmahmud/todo-app```
