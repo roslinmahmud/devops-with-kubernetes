@@ -12,6 +12,17 @@ spec:
       labels:
         app: logoutput
     spec:
+      volumes:
+        - name: shared-log
+          emptyDir: {}
       containers:
-        - name: logoutput
-          image: roslinmahmud/log-output:latest
+        - name: log-generator
+          image: roslinmahmud/log-generator:latest
+          volumeMounts:
+            - name: shared-log
+              mountPath: /app/files
+        - name: log-response
+          image: roslinmahmud/log-response:latest
+          volumeMounts:
+            - name: shared-log
+              mountPath: /app/files
