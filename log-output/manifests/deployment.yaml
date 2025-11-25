@@ -14,7 +14,8 @@ spec:
     spec:
       volumes:
         - name: shared-log
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: file-claim
       containers:
         - name: log-generator
           image: roslinmahmud/log-generator:latest
