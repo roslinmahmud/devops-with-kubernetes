@@ -15,3 +15,10 @@ spec:
       containers:
         - name: todoapp
           image: roslinmahmud/todo-app:latest
+          volumeMounts:
+            - name: files-volume
+              mountPath: /app/files
+      volumes:
+        - name: files-volume
+          persistentVolumeClaim:
+            claimName: todo-pvc
