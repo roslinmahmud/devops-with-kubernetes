@@ -77,3 +77,6 @@ venv.bak/
 # Editor swap files
 *~
 *.swp
+
+# App generated files
+files
