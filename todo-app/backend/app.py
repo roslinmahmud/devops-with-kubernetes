@@ -5,7 +5,6 @@ from fastapi import FastAPI
 import requests
 from fastapi.staticfiles import StaticFiles
 import os
-from fastapi.responses import HTMLResponse
 import uvicorn
 
 @asynccontextmanager
@@ -37,32 +36,28 @@ def fetch_new_image():
 app = FastAPI(lifespan=lifespan)
 
 os.makedirs("files", exist_ok=True)
+os.makedirs("frontend", exist_ok=True)
 
 app.mount("/static", StaticFiles(directory="files"), name="static")
 
-@app.get("/")
-async def read_root():
+@app.get("/api/image")
+async def get_image():
     metadata = load_metadata()
     current_time = time.time()
-    if not os.path.exists(IMAGE_FILE) or current_time - metadata["timestamp"] >= 600:  # 10 minutes
+
+    if not os.path.exists(IMAGE_FILE):
+        fetch_new_image()
+    elif current_time - metadata["timestamp"] >= 600:  # 10 minutes
         if metadata["served_extra"]:
             fetch_new_image()
         else:
             metadata["served_extra"] = True
             save_metadata(metadata)
     
-    html = """
-    <!doctype html>
-    <html>
-      <head><title>Todo App</title></head>
-      <body>
-        <h1>Hello from FastAPI todo-app</h1>
-        <img src="/static/cached_image.jpg" alt="Random Image" style="max-width: 100%; height: 60vh;">
-        <h5>Devops with Kubernetes</h5>
-      </body>
-    </html>
-    """
-    return HTMLResponse(content=html, status_code=200)
+    return {"image": "/static/cached_image.jpg"}
+
+# Serve Angular static files
+app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
