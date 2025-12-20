@@ -12,10 +12,6 @@ spec:
       labels:
         app: logoutput
     spec:
-      volumes:
-        - name: shared-log
-          persistentVolumeClaim:
-            claimName: file-claim
       containers:
         - name: log-generator
           image: roslinmahmud/log-generator:latest
@@ -27,3 +23,6 @@ spec:
           volumeMounts:
             - name: shared-log
               mountPath: /app/files
+      volumes:
+        - name: shared-log
+          emptyDir: {}

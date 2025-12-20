@@ -31,6 +31,11 @@ async def ping():
         f.write(f"{value}")
     return f"pong {value}"
 
+
+@app.get("/pings")
+async def get_pings():
+    return {"counter": counter}
+
 if __name__ == "__main__":
     import uvicorn
 

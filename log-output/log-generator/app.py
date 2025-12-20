@@ -23,9 +23,9 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-async def log_loop():
+os.makedirs("files", exist_ok=True)
 
-    os.makedirs("files", exist_ok=True)
+async def log_loop():
 
     while True:
         timestamp = datetime.now(UTC).isoformat() + "Z"
