@@ -1,12 +1,14 @@
 <h1>Hello from FastAPI todo-app</h1>
 <img [src]="imageURL()" alt="Random Image" style="max-width: 60vw; height: 60vh;">
 <div>
-    <input type="text" id="todo-input" maxlength="140" placeholder="Enter a todo (max 140 chars)">
-    <button type="button">Create todo</button>
+    <input type="text" [(ngModel)]="newTodoTitle" id="todo-input" maxlength="140" placeholder="Enter a todo (max 140 chars)">
+    <button type="button" (click)="createTodo()">Create todo</button>
 </div>
 <ul>
-    <li>Buy groceries</li>
-    <li>Finish Kubernetes tutorial</li>
-    <li>Read a book</li>
+    @for (todo of todos(); track todo.id) {
+        <li>
+            <span [class.completed]="todo.completed">{{ todo.title }}</span>
+        </li>
+    }
 </ul>
 <h5>Devops with Kubernetes</h5>

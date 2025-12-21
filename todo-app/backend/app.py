@@ -1,7 +1,9 @@
 from contextlib import asynccontextmanager
 import json
 import time
+from typing import List
 from fastapi import FastAPI
+from pydantic import BaseModel
 import requests
 from fastapi.staticfiles import StaticFiles
 import os
@@ -55,6 +57,26 @@ async def get_image():
             save_metadata(metadata)
     
     return {"image": "/static/cached_image.jpg"}
+
+# Add Todo model and in-memory storage
+class Todo(BaseModel):
+    id: int
+    title: str
+    completed: bool = False
+
+todos: List[Todo] = []
+
+@app.get("/api/todos")
+async def get_todos():
+    return todos
+
+@app.post("/api/todos")
+async def create_todo(todo: Todo):
+    # Assign a new ID based on the current max ID
+    new_id = max([t.id for t in todos], default=0) + 1
+    new_todo = Todo(id=new_id, title=todo.title, completed=todo.completed)
+    todos.append(new_todo)
+    return new_todo
 
 # Serve Angular static files
 app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
