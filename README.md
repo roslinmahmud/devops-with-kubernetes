@@ -22,3 +22,4 @@
 ### Chapter 3
 
 - [2.1.](https://github.com/roslinmahmud/devops-with-kubernetes/tree/2.1)
+- [2.2.](https://github.com/roslinmahmud/devops-with-kubernetes/tree/2.2/todo-app)
