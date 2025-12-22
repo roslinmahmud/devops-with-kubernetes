@@ -24,3 +24,4 @@
 - [2.1.](https://github.com/roslinmahmud/devops-with-kubernetes/tree/2.1)
 - [2.2.](https://github.com/roslinmahmud/devops-with-kubernetes/tree/2.2/todo-app)
 - [2.3.](https://github.com/roslinmahmud/devops-with-kubernetes/tree/2.3)
+- [2.4.](https://github.com/roslinmahmud/devops-with-kubernetes/tree/2.4/todo-app)
