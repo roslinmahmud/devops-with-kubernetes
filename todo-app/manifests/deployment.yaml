@@ -16,6 +16,23 @@ spec:
       containers:
         - name: todoapp
           image: roslinmahmud/todo-app:latest
+          env:
+            - name: PORT
+              value: "8000"
+            - name: IMAGE_URL
+              value: "https://picsum.photos/1200"
+            - name: CACHE_DURATION
+              value: "600"
+            - name: IMAGE_FILE
+              value: "files/cached_image.jpg"
+            - name: METADATA_FILE
+              value: "files/cache_metadata.json"
+            - name: STATIC_DIR
+              value: "files"
+            - name: FRONTEND_DIR
+              value: "frontend"
+            - name: HOST
+              value: "0.0.0.0"
           volumeMounts:
             - name: files-volume
               mountPath: /app/files

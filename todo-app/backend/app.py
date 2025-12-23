@@ -11,12 +11,17 @@ import uvicorn
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    port = os.getenv("PORT", 8000)
+    port = os.getenv("PORT", "8000")
     print(f"Server started in port {port}")
     yield
 
-IMAGE_FILE = "files/cached_image.jpg"
-METADATA_FILE = "files/cache_metadata.json"
+IMAGE_FILE = os.getenv("IMAGE_FILE", "files/cached_image.jpg")
+METADATA_FILE = os.getenv("METADATA_FILE", "files/cache_metadata.json")
+IMAGE_URL = os.getenv("IMAGE_URL", "https://picsum.photos/1200")
+CACHE_DURATION = int(os.getenv("CACHE_DURATION", 600))
+STATIC_DIR = os.getenv("STATIC_DIR", "files")
+FRONTEND_DIR = os.getenv("FRONTEND_DIR", "frontend")
+HOST = os.getenv("HOST", "0.0.0.0")
 
 def load_metadata():
     if os.path.exists(METADATA_FILE):
@@ -29,7 +34,7 @@ def save_metadata(metadata):
         json.dump(metadata, f)
 
 def fetch_new_image():
-    response = requests.get("https://picsum.photos/1200")
+    response = requests.get(IMAGE_URL)
     with open(IMAGE_FILE, "wb") as f:
         f.write(response.content)
     metadata = {"timestamp": time.time(), "served_extra": False}
@@ -37,10 +42,10 @@ def fetch_new_image():
 
 app = FastAPI(lifespan=lifespan)
 
-os.makedirs("files", exist_ok=True)
-os.makedirs("frontend", exist_ok=True)
+os.makedirs(STATIC_DIR, exist_ok=True)
+os.makedirs(FRONTEND_DIR, exist_ok=True)
 
-app.mount("/static", StaticFiles(directory="files"), name="static")
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 @app.get("/api/image")
 async def get_image():
@@ -49,7 +54,7 @@ async def get_image():
 
     if not os.path.exists(IMAGE_FILE):
         fetch_new_image()
-    elif current_time - metadata["timestamp"] >= 600:  # 10 minutes
+    elif current_time - metadata["timestamp"] >= CACHE_DURATION:
         if metadata["served_extra"]:
             fetch_new_image()
         else:
@@ -79,8 +84,8 @@ async def create_todo(todo: Todo):
     return new_todo
 
 # Serve Angular static files
-app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
+app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    uvicorn.run(app, host=HOST, port=port)
