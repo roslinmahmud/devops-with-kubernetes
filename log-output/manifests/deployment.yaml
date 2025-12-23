@@ -21,9 +21,20 @@ spec:
               mountPath: /app/files
         - name: log-response
           image: roslinmahmud/log-response:latest
+          env:
+            - name: MESSAGE
+              valueFrom:
+                configMapKeyRef:
+                  name: log-output-config
+                  key: MESSAGE
           volumeMounts:
             - name: shared-log
               mountPath: /app/files
+            - name: config-volume
+              mountPath: /etc/config
       volumes:
         - name: shared-log
           emptyDir: {}
+        - name: config-volume
+          configMap:
+            name: log-output-config
