@@ -16,3 +16,14 @@ spec:
       containers:
         - name: pingpong
           image: roslinmahmud/ping-pong:latest
+          env:
+            - name: DB_HOST
+              value: "postgres.exercises.svc.cluster.local"
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: "pingpong"
+            - name: DB_USER
+              value: "admin"
+            - name: DB_PASSWORD
+              value: "password"
