@@ -1,0 +1,19 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: todo-generator
+  namespace: project
+spec:
+  schedule: "0 * * * *"   # every hour
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: generate-todo
+              image: curlimages/curl
+              args:
+                - "-X"
+                - "POST"
+                - "http://todoapp-svc:2345/api/todos/generate-wiki"
+          restartPolicy: OnFailure

@@ -121,6 +121,31 @@ async def create_todo(todo: Todo):
     conn.close()
     return new_todo
 
+@app.post("/api/todos/generate-wiki")
+async def generate_wiki_todo():
+    """Generate a todo with a random Wikipedia article"""
+    try:
+        # Get random Wikipedia article URL
+        headers = {"User-Agent": "TodoApp/1.0 (Educational project)"}
+        response = requests.get("https://en.wikipedia.org/wiki/Special:Random", headers=headers, allow_redirects=True)
+        wiki_url = response.url
+        
+        # Create todo with the Wikipedia URL
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        title = f"Read {wiki_url}"
+        cur.execute(
+            "INSERT INTO todos (title, completed) VALUES (%s, %s) RETURNING id, title, completed;",
+            (title, False)
+        )
+        new_todo = cur.fetchone()
+        conn.commit()
+        cur.close()
+        conn.close()
+        return new_todo
+    except Exception as e:
+        return {"error": str(e)}
+
 # Serve Angular static files
 app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
 
