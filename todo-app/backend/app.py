@@ -1,14 +1,27 @@
-from contextlib import asynccontextmanager
 import json
-import time
-from fastapi import FastAPI
-import psycopg2
-from psycopg2.extras import RealDictCursor
-from pydantic import BaseModel
-import requests
-from fastapi.staticfiles import StaticFiles
+import logging
 import os
+import sys
+import time
+from contextlib import asynccontextmanager
+
+import psycopg2
+import requests
 import uvicorn
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from psycopg2.extras import RealDictCursor
+from pydantic import BaseModel, Field
+
+# Configure logging to stdout for Kubernetes
+logging.basicConfig(
+    stream=sys.stdout,
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -94,7 +107,7 @@ async def get_image():
 # Updated Todo model and database storage
 class Todo(BaseModel):
     id: int = 0
-    title: str
+    title: str = Field(..., max_length=140)
     completed: bool = False
 
 @app.get("/api/todos")
@@ -109,6 +122,7 @@ async def get_todos():
 
 @app.post("/api/todos")
 async def create_todo(todo: Todo):
+    logger.info(f"New todo received: {todo.title}")
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     cur.execute(
@@ -145,6 +159,15 @@ async def generate_wiki_todo():
         return new_todo
     except Exception as e:
         return {"error": str(e)}
+
+# Custom exception handler for validation errors
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc):
+    logger.error(f"Validation error: {exc}")
+    return JSONResponse(
+        status_code=422,
+        content={"detail": exc.errors()},
+    )
 
 # Serve Angular static files
 app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
