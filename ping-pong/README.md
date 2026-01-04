@@ -7,3 +7,7 @@ The endpoint returns a single line payload with the body `pong 0` on the first r
 Use `curl` to test locally once the service is reachable:
 
     curl http://localhost:8081/pingpong
+
+### 3.1
+
+![alt text](workloads.png)
