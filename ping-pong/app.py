@@ -57,12 +57,8 @@ def update_counter(value):
     conn.commit()
     conn.close()
 
+
 @app.get("/", response_class=PlainTextResponse)
-async def root():
-    return "Welcome to the Ping-Pong API!"
-
-
-@app.get("/pingpong", response_class=PlainTextResponse)
 async def ping():
     value = get_counter()
     update_counter(value + 1)
