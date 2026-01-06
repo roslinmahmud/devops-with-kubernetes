@@ -1,4 +1,4 @@
-apiVersion: gateway.networking.k8s.io/v1
+apiVersion: gateway.networking.k8s.io/v1beta1
 kind: HTTPRoute
 metadata:
   name: pingpong-route
@@ -17,6 +17,14 @@ spec:
         path:
           type: ReplacePrefixMatch
           replacePrefixMatch: /
+    backendRefs:
+    - name: pingpong-svc
+      port: 2346
+      
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
     backendRefs:
     - name: pingpong-svc
       port: 2346
