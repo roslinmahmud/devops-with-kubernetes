@@ -4,9 +4,9 @@ metadata:
   name: todo-pvc
   namespace: project
 spec:
-  storageClassName: todo-pv  # Must match the PV's storageClassName
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 1Gi  # Must match or be less than PV capacity
+      storage: 1Gi
+  storageClassName: standard-rwo
