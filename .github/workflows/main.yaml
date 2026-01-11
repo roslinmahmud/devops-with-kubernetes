@@ -46,9 +46,15 @@ jobs:
       - name: 'Set up Docker Buildx'
         run: gcloud auth configure-docker "$REGISTRY" --quiet
 
-      # 5. Define a Unique Image Tag (Registry + Repo + Image Name + Branch + Commit Hash)
+      # 5. Define a Unique Image Tag and Namespace
       - name: 'Form the image name'
-        run: echo "IMAGE_TAG=$REGISTRY/$PROJECT_ID/$REPOSITORY/$IMAGE:$BRANCH-$GITHUB_SHA" >> $GITHUB_ENV
+        run: |
+          if [ "$BRANCH" == "main" ]; then
+            echo "K8S_NAMESPACE=project" >> $GITHUB_ENV
+          else
+            echo "K8S_NAMESPACE=$BRANCH" >> $GITHUB_ENV
+          fi
+          echo "IMAGE_TAG=$REGISTRY/$PROJECT_ID/$REPOSITORY/$IMAGE:$BRANCH-$GITHUB_SHA" >> $GITHUB_ENV
 
       # 6. Build the Image
       - name: Build
@@ -65,12 +71,21 @@ jobs:
       # 9. Deploy
       - name: Deploy
         run: |-
+          # Create namespace if it doesn't exist
+          kubectl create namespace $K8S_NAMESPACE || true
+          
+          # Set the context to the new namespace
+          kubectl config set-context --current --namespace=$K8S_NAMESPACE
+          
+          # Update kustomization.yaml to overwrite the namespace
+          kustomize edit set namespace $K8S_NAMESPACE
+          
           # Replaces the hardcoded image in your YAML with the new one we just built
           kustomize edit set image roslinmahmud/todo-app=$IMAGE_TAG
           
           # Builds the final YAML and applies it to the cluster
           kustomize build . | kubectl apply -f -
           
-          # Waits for the rollout to finish successfully (Added namespace flag)
-          kubectl rollout status deployment $SERVICE -n project
-          kubectl get services -o wide -n project
+          # Waits for the rollout to finish successfully
+          kubectl rollout status deployment $SERVICE -n $K8S_NAMESPACE
+          kubectl get services -o wide -n $K8S_NAMESPACE
