@@ -1,0 +1,49 @@
+name: Cleanup environment
+
+on:
+  delete:
+
+env:
+  PROJECT_ID: ${{ secrets.GKE_PROJECT }}
+  GKE_CLUSTER: dwk-cluster
+  GKE_ZONE: europe-north1-b
+
+jobs:
+  delete-namespace:
+    # Only run if a branch was deleted (not a tag)
+    if: github.event.ref_type == 'branch'
+    name: Delete Namespace
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Authenticate with Google Cloud
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.GKE_SA_KEY }}'
+
+      - name: 'Set up Cloud SDK'
+        uses: google-github-actions/setup-gcloud@v2
+
+      # Get Cluster Credentials
+      - name: 'Get GKE credentials'
+        uses: 'google-github-actions/get-gke-credentials@v2'
+        with:
+          cluster_name: '${{ env.GKE_CLUSTER }}'
+          project_id: '${{ env.PROJECT_ID }}'
+          location: '${{ env.GKE_ZONE }}'
+
+      # Delete the Namespace corresponding to the branch
+      - name: Delete Namespace
+        env:
+          BRANCH: ${{ github.event.ref }}
+        run: |
+          # Protect the production namespace project
+          if [ "$BRANCH" == "main" ]; then
+            echo "Skipping deletion for main branch (project namespace)."
+            exit 0
+          fi
+          
+          echo "Deleting namespace: $BRANCH"
+          kubectl delete namespace $BRANCH --ignore-not-found
