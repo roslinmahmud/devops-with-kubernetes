@@ -17,6 +17,9 @@ jobs:
   build-publish-deploy:
     name: Build, Publish and Deploy
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./todo-app
     steps:
       # 1. Get the code
       - name: Checkout
