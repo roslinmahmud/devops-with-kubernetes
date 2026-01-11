@@ -71,6 +71,6 @@ jobs:
           # Builds the final YAML and applies it to the cluster
           kustomize build . | kubectl apply -f -
           
-          # Waits for the rollout to finish successfully
-          kubectl rollout status deployment $SERVICE
-          kubectl get services -o wide
+          # Waits for the rollout to finish successfully (Added namespace flag)
+          kubectl rollout status deployment $SERVICE -n project
+          kubectl get services -o wide -n project
