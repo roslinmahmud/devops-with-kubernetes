@@ -1,0 +1,72 @@
+name: Release application
+
+on:
+  push:
+
+env:
+  PROJECT_ID: ${{ secrets.GKE_PROJECT }}
+  GKE_CLUSTER: dwk-cluster
+  GKE_ZONE: europe-north1-b
+  REGISTRY: europe-north1-docker.pkg.dev
+  REPOSITORY: dwk-repository
+  IMAGE: todo-app
+  SERVICE: todoapp-dep
+  BRANCH: ${{ github.ref_name }}
+
+jobs:
+  build-publish-deploy:
+    name: Build, Publish and Deploy
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Get the code
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2. Authenticate with Google Cloud
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.GKE_SA_KEY }}'
+
+      - name: 'Set up Cloud SDK'
+        uses: google-github-actions/setup-gcloud@v2
+
+      # 3. Get Cluster Credentials (so kubectl works)
+      - name: 'Get GKE credentials'
+        uses: 'google-github-actions/get-gke-credentials@v2'
+        with:
+          cluster_name: '${{ env.GKE_CLUSTER }}'
+          project_id: '${{ env.PROJECT_ID }}'
+          location: '${{ env.GKE_ZONE }}'
+
+      # 4. Login to Artifact Registry
+      - name: 'Set up Docker Buildx'
+        run: gcloud auth configure-docker "$REGISTRY" --quiet
+
+      # 5. Define a Unique Image Tag (Registry + Repo + Image Name + Branch + Commit Hash)
+      - name: 'Form the image name'
+        run: echo "IMAGE_TAG=$REGISTRY/$PROJECT_ID/$REPOSITORY/$IMAGE:$BRANCH-$GITHUB_SHA" >> $GITHUB_ENV
+
+      # 6. Build the Image
+      - name: Build
+        run: docker build --tag $IMAGE_TAG .
+
+      # 7. Publish (Push) to Google Artifact Registry
+      - name: Publish
+        run: docker push $IMAGE_TAG
+
+      # 8. Set up Kustomize (Tool to edit YAMLs on the fly)
+      - name: Set up Kustomize
+        uses: imranismail/setup-kustomize@v2.1.0
+
+      # 9. Deploy
+      - name: Deploy
+        run: |-
+          # Replaces the hardcoded image in your YAML with the new one we just built
+          kustomize edit set image roslinmahmud/todo-app=$IMAGE_TAG
+          
+          # Builds the final YAML and applies it to the cluster
+          kustomize build . | kubectl apply -f -
+          
+          # Waits for the rollout to finish successfully
+          kubectl rollout status deployment $SERVICE
+          kubectl get services -o wide
