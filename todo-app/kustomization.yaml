@@ -10,6 +10,7 @@ resources:
   - manifests/ingress.yaml
   - manifests/postgres-statefulset.yaml
   - manifests/cronjob.yaml
+  - manifests/backup-cronjob.yaml
 
 images:
   - name: roslinmahmud/todo-app
