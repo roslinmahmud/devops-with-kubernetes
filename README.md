@@ -44,3 +44,4 @@
 - [3.9.](https://github.com/roslinmahmud/devops-with-kubernetes/tree/3.9/todo-app)
 - [3.10.](https://github.com/roslinmahmud/devops-with-kubernetes/tree/3.10/todo-app)
 - [3.11](https://github.com/roslinmahmud/devops-with-kubernetes/tree/3.11/todo-app)
+- [3.12](https://github.com/roslinmahmud/devops-with-kubernetes/tree/3.12/todo-app/logs)
