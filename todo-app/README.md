@@ -1,3 +1,6 @@
+## Exercise 3.12
+Used Google Cloud Console - Logs Explorer. See a picture of the logs when a new todo is created [here](logs/)
+
 ## Comparison of Cloud SQL (DBaaS) and Self‑Managed PostgreSQL on GKE
 
 ### Initialization and Setup Effort
