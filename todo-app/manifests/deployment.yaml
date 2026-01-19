@@ -16,6 +16,13 @@ spec:
       containers:
         - name: todoapp
           image: roslinmahmud/todo-app:latest
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "10m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
           env:
             - name: PORT
               value: "8000"

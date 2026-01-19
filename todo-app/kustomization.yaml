@@ -11,6 +11,7 @@ resources:
   - manifests/postgres-statefulset.yaml
   - manifests/cronjob.yaml
   - manifests/backup-cronjob.yaml
+  - manifests/hpa.yaml
 
 images:
   - name: roslinmahmud/todo-app
