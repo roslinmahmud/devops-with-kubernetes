@@ -69,6 +69,19 @@ async def ping():
 async def get_pings():
     return {"counter": get_counter()}
 
+@app.get("/healthz")
+async def healthz():
+    """Health check endpoint for readiness probe"""
+    try:
+        conn = get_db_connection()
+        with conn.cursor() as cur:
+            cur.execute("SELECT 1;")
+        conn.close()
+        return {"status": "healthy"}
+    except Exception as e:
+        from fastapi import Response
+        return Response(content=f"Database connection failed: {str(e)}", status_code=503)
+
 if __name__ == "__main__":
     import uvicorn
 

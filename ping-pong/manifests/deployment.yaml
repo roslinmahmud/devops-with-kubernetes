@@ -27,3 +27,9 @@ spec:
               value: "admin"
             - name: DB_PASSWORD
               value: "password"
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5

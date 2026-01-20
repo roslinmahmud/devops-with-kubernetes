@@ -32,6 +32,12 @@ spec:
               mountPath: /app/files
             - name: config-volume
               mountPath: /etc/config
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 5
       volumes:
         - name: shared-log
           emptyDir: {}
