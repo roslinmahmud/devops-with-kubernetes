@@ -3,6 +3,8 @@ kind: Service
 metadata:
   name: todoapp-svc
   namespace: project
+  annotations:
+    cloud.google.com/backend-config: '{"default": "todo-backend-config"}'
 spec:
   type: ClusterIP
   selector:

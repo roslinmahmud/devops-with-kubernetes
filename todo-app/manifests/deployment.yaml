@@ -48,6 +48,18 @@ spec:
               value: "user"
             - name: DB_PASSWORD
               value: "password"
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            initialDelaySeconds: 20
+            periodSeconds: 10
           volumeMounts:
             - name: files-volume
               mountPath: /app/files

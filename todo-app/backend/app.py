@@ -160,6 +160,19 @@ async def generate_wiki_todo():
     except Exception as e:
         return {"error": str(e)}
 
+@app.get("/healthz")
+async def healthz():
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT 1")
+        cur.close()
+        conn.close()
+        return {"status": "ok"}
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
 # Custom exception handler for validation errors
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request, exc):
