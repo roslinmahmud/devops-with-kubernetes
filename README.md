@@ -48,4 +48,6 @@
 - [3.12](https://github.com/roslinmahmud/devops-with-kubernetes/tree/3.12/todo-app/logs)
 
 ### Chapter 5
+
 - [4.1](https://github.com/roslinmahmud/devops-with-kubernetes/tree/4.1)
+- [4.2](https://github.com/roslinmahmud/devops-with-kubernetes/tree/4.2/todo-app)
