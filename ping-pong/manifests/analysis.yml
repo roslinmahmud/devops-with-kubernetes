@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: cpu-usage
+  namespace: exercises
+spec:
+  metrics:
+  - name: total-cpu-usage
+    # Check every minute
+    interval: 1m
+    # Run for 5 minutes
+    count: 5
+    # If usage is too high even once, fail immediately
+    failureLimit: 0
+    # Limit set to 0.2 CPU (200m).
+    successCondition: result < 0.2
+    provider:
+      prometheus:
+        address: http://kube-prometheus-stack-1767-prometheus.prometheus.svc.cluster.local:9090
+        # Sums CPU of ALL containers in the 'exercises' namespace as per instructions
+        query: |
+          scalar(
+            sum(rate(container_cpu_usage_seconds_total{namespace="exercises", container!=""}[1m]))
+          )
