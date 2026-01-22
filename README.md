@@ -52,3 +52,4 @@
 - [4.1](https://github.com/roslinmahmud/devops-with-kubernetes/tree/4.1)
 - [4.2](https://github.com/roslinmahmud/devops-with-kubernetes/tree/4.2/todo-app)
 - [4.3](https://github.com/roslinmahmud/devops-with-kubernetes/tree/4.3/demo-exercises/prometheus)
+- [4.4](https://github.com/roslinmahmud/devops-with-kubernetes/tree/4.4/ping-pong)
