@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
@@ -19,6 +19,9 @@ export class App implements OnInit {
   imageURL = signal('');
   todos = signal<Todo[]>([]);
   newTodoTitle = signal('');
+
+  activeTodos = computed(() => this.todos().filter(todo => !todo.completed));
+  completedTodos = computed(() => this.todos().filter(todo => todo.completed));
 
   ngOnInit() {
     this.fetchImage();
@@ -62,6 +65,23 @@ export class App implements OnInit {
       })
       .catch(error => {
         console.error('Error creating todo:', error);
+      });
+  }
+
+  markAsDone(todo: Todo) {
+    fetch(`/api/todos/${todo.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...todo, completed: true })
+    })
+      .then(response => response.json())
+      .then(updatedTodo => {
+        this.todos.update(todos => 
+          todos.map(t => t.id === updatedTodo.id ? updatedTodo : t)
+        );
+      })
+      .catch(error => {
+        console.error('Error updating todo:', error);
       });
   }
 }

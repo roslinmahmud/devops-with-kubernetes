@@ -1,5 +1,5 @@
 # Angular build
-FROM node:20-alpine AS frontend-build
+FROM node:20-slim AS frontend-build
 WORKDIR /app
 COPY frontend/todo/package*.json ./
 RUN npm ci

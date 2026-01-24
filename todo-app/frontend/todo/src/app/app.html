@@ -4,11 +4,24 @@
     <input type="text" [(ngModel)]="newTodoTitle" id="todo-input" maxlength="140" placeholder="Enter a todo (max 140 chars)">
     <button type="button" (click)="createTodo()">Create todo</button>
 </div>
+
+<h3>Todo List ({{ activeTodos().length }})</h3>
 <ul>
-    @for (todo of todos(); track todo.id) {
+    @for (todo of activeTodos(); track todo.id) {
+        <li>
+            <span>{{ todo.title }}</span>
+            <button type="button" (click)="markAsDone(todo)">Mark as done</button>
+        </li>
+    }
+</ul>
+
+<h3>Done ({{ completedTodos().length }})</h3>
+<ul>
+    @for (todo of completedTodos(); track todo.id) {
         <li>
             <span [class.completed]="todo.completed">{{ todo.title }}</span>
         </li>
     }
 </ul>
-<h5>Devops with Kubernetes</h5>
+
+<h5>Devops with Kubernetes University of Helsinki</h5>

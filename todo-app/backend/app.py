@@ -173,6 +173,26 @@ async def healthz():
         logger.error(f"Health check failed: {e}")
         return JSONResponse(status_code=500, content={"error": str(e)})
 
+@app.put("/api/todos/{todo_id}")
+async def update_todo(todo_id: int, todo: Todo):
+    """Update a todo's completed status"""
+    logger.info(f"Updating todo {todo_id}: completed={todo.completed}")
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute(
+        "UPDATE todos SET completed = %s WHERE id = %s RETURNING id, title, completed;",
+        (todo.completed, todo_id)
+    )
+    updated_todo = cur.fetchone()
+    conn.commit()
+    cur.close()
+    conn.close()
+    
+    if updated_todo is None:
+        return JSONResponse(status_code=404, content={"error": "Todo not found"})
+    
+    return updated_todo
+
 # Custom exception handler for validation errors
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request, exc):
