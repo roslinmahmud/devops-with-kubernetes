@@ -4,11 +4,10 @@ kind: Kustomization
 namespace: exercises
 
 resources:
-- manifests/configmap.yaml
-- manifests/deployment.yaml
-- manifests/service.yaml
-- manifests/gateway.yaml
-- manifests/route.yaml
+  - manifests/configmap.yaml
+  - manifests/deployment.yaml
+  - manifests/service.yaml
+  - manifests/ingress.yaml
 
 images:
 - name: roslinmahmud/log-generator
