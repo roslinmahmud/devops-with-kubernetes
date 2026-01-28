@@ -4,15 +4,15 @@ kind: Kustomization
 namespace: exercises
 
 resources:
-  - manifests/configmap.yaml
-  - manifests/deployment.yaml
-  - manifests/service.yaml
-  - manifests/ingress.yaml
+- manifests/configmap.yaml
+- manifests/deployment.yaml
+- manifests/service.yaml
+- manifests/ingress.yaml
 
 images:
 - name: roslinmahmud/log-generator
   newName: roslinmahmud/log-generator
-  newTag: fd4e104695095c2949ea25511ffc8050d482a9f7
+  newTag: e0127581fdf72e4bce2143211eab30c9a1308c0b
 - name: roslinmahmud/log-response
   newName: roslinmahmud/log-response
-  newTag: fd4e104695095c2949ea25511ffc8050d482a9f7
+  newTag: e0127581fdf72e4bce2143211eab30c9a1308c0b
