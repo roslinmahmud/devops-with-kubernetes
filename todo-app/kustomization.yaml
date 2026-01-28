@@ -4,7 +4,6 @@ kind: Kustomization
 namespace: project
 
 resources:
-- manifests/backend-config.yaml
 - manifests/pv/PersistentVolumeClaim.yaml
 - manifests/deployment.yaml
 - manifests/service.yaml
