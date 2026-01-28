@@ -1,0 +1,53 @@
+name: Build and publish log-output
+
+on:
+  push:
+    paths:
+      - 'log-output/**'
+      - '.github/workflows/log-output.yaml'
+
+jobs:
+  build-publish:
+    name: Build, Push, Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Build and publish log-generator
+      - name: Build and publish log-generator
+        working-directory: ./log-output/log-generator
+        run: |-
+          docker build --tag "roslinmahmud/log-generator:$GITHUB_SHA" .
+          docker push "roslinmahmud/log-generator:$GITHUB_SHA"
+
+      # Build and publish log-response
+      - name: Build and publish log-response
+        working-directory: ./log-output/log-response
+        run: |-
+          docker build --tag "roslinmahmud/log-response:$GITHUB_SHA" .
+          docker push "roslinmahmud/log-response:$GITHUB_SHA"
+
+      - name: Set up Kustomize
+        uses: imranismail/setup-kustomize@v2
+
+      - name: Use right images
+        working-directory: ./log-output
+        run: |-
+          kustomize edit set image roslinmahmud/log-generator=roslinmahmud/log-generator:$GITHUB_SHA
+          kustomize edit set image roslinmahmud/log-response=roslinmahmud/log-response:$GITHUB_SHA
+
+      - name: Commit kustomization.yaml to GitHub
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: 'log-output/kustomization.yaml'
+          message: New version released ${{ github.sha }}

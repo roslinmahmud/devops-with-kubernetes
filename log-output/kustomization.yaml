@@ -9,3 +9,9 @@ resources:
   - manifests/service.yaml
   - manifests/gateway.yaml
   - manifests/route.yaml
+
+images:
+  - name: roslinmahmud/log-generator
+    newTag: latest # The CI will overwrite "latest" with the real SHA
+  - name: roslinmahmud/log-response
+    newTag: latest
