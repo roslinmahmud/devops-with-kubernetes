@@ -16,4 +16,4 @@ resources:
 images:
 - name: roslinmahmud/todo-app
   newName: roslinmahmud/todo-app
-  newTag: 97e14ffeb9cbdc128ab81a4499927bd36900fafd
+  newTag: ecf956df96e0920f6ae6001ccce6c5ce3abe02a7
