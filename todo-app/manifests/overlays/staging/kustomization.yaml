@@ -11,3 +11,7 @@ patches:
   target:
     kind: Deployment
     name: todoapp-dep
+images:
+- name: roslinmahmud/todo-app
+  newName: roslinmahmud/todo-app
+  newTag: dfea1cb2410616a2f7477113179723da4840ac0a
