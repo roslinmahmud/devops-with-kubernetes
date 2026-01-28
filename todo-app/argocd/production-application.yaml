@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: todo-app-production
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/roslinmahmud/devops-with-kubernetes
+    path: todo-app/manifests/overlays/prod
+    targetRevision: main
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: production
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+  # Only sync when tagged commits are pushed
+  ignoreDifferences:
+  - group: apps
+    kind: Deployment
+    jsonPointers:
+    - /spec/replicas

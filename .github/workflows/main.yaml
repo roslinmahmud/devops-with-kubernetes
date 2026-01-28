@@ -2,6 +2,10 @@ name: Build and publish todo-app
 
 on:
   push:
+    branches:
+      - main
+    tags:
+      - 'v*'
     paths:
       - 'todo-app/**'
       - '.github/workflows/main.yaml'
@@ -23,23 +27,40 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Build and publish todo-app
+      - name: Set image tag
+        id: vars
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            echo "IMAGE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+            echo "ENVIRONMENT=production" >> $GITHUB_OUTPUT
+          else
+            echo "IMAGE_TAG=$GITHUB_SHA" >> $GITHUB_OUTPUT
+            echo "ENVIRONMENT=staging" >> $GITHUB_OUTPUT
+          fi
+
       - name: Build and publish todo-app
         working-directory: ./todo-app
         run: |-
-          docker build --tag "roslinmahmud/todo-app:$GITHUB_SHA" .
-          docker push "roslinmahmud/todo-app:$GITHUB_SHA"
+          docker build --tag "roslinmahmud/todo-app:${{ steps.vars.outputs.IMAGE_TAG }}" .
+          docker push "roslinmahmud/todo-app:${{ steps.vars.outputs.IMAGE_TAG }}"
 
       - name: Set up Kustomize
         uses: imranismail/setup-kustomize@v2
 
-      - name: Use right image
-        working-directory: ./todo-app
+      - name: Update staging overlay
+        if: steps.vars.outputs.ENVIRONMENT == 'staging'
+        working-directory: ./todo-app/manifests/overlays/staging
         run: |-
-          kustomize edit set image roslinmahmud/todo-app=roslinmahmud/todo-app:$GITHUB_SHA
+          kustomize edit set image roslinmahmud/todo-app=roslinmahmud/todo-app:${{ steps.vars.outputs.IMAGE_TAG }}
 
-      - name: Commit kustomization.yaml to GitHub
+      - name: Update production overlay
+        if: steps.vars.outputs.ENVIRONMENT == 'production'
+        working-directory: ./todo-app/manifests/overlays/production
+        run: |-
+          kustomize edit set image roslinmahmud/todo-app=roslinmahmud/todo-app:${{ steps.vars.outputs.IMAGE_TAG }}
+
+      - name: Commit kustomization changes
         uses: EndBug/add-and-commit@v9
         with:
-          add: 'todo-app/kustomization.yaml'
-          message: New version released ${{ github.sha }}
+          add: 'todo-app/manifests/overlays/*/kustomization.yaml'
+          message: "Update ${{ steps.vars.outputs.ENVIRONMENT }} to version ${{ steps.vars.outputs.IMAGE_TAG }}"

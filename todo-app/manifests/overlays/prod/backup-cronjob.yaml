@@ -1,0 +1,55 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: backup-cronjob
+spec:
+  schedule: "0 0 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: backup
+            image: google/cloud-sdk:alpine
+            command: ["/bin/sh", "-c"]
+            args:
+              - |
+                set -e
+                
+                echo "1. Installing pg_dump..."
+                apk add --no-cache postgresql-client
+
+                echo "2. Dumping 'tododb'..."
+                pg_dump -h $PGHOST -U $POSTGRES_USER $POSTGRES_DB > /tmp/backup.sql
+
+                echo "3. Authenticating with Google..."
+                gcloud auth activate-service-account --key-file=/var/secrets/google/key.json
+
+                echo "4. Uploading to GCS..."
+                gsutil cp /tmp/backup.sql gs://$BUCKET_NAME/tododb-backup-$(date +%Y-%m-%d).sql
+                
+                echo "Done!"
+
+            env:
+            - name: PGHOST
+              value: "postgres-svc"
+            - name: POSTGRES_DB
+              value: "tododb"
+            - name: POSTGRES_USER
+              value: "user"
+            - name: PGPASSWORD
+              value: "password"
+            - name: BUCKET_NAME
+              value: "dwk-todo-backup"
+            
+            volumeMounts:
+            - name: google-cloud-key
+              mountPath: /var/secrets/google
+              readOnly: true
+
+          restartPolicy: OnFailure
+          
+          volumes:
+          - name: google-cloud-key
+            secret:
+              secretName: gcs-backup-secret

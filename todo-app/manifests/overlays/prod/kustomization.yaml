@@ -1,0 +1,28 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: production
+
+resources:
+- ../../base
+- backup-cronjob.yaml
+
+patches:
+- path: deployment-patch.yaml
+  target:
+    kind: Deployment
+    name: todoapp-dep
+- path: service-patch.yaml
+  target:
+    kind: Service
+    name: todoapp-svc
+- target:
+    kind: Deployment
+    name: todoapp-dep
+  patch: |-
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: todoapp-dep
+    spec:
+      replicas: 2
