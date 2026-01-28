@@ -4,14 +4,16 @@ kind: Kustomization
 namespace: exercises
 
 resources:
-  - manifests/configmap.yaml
-  - manifests/deployment.yaml
-  - manifests/service.yaml
-  - manifests/gateway.yaml
-  - manifests/route.yaml
+- manifests/configmap.yaml
+- manifests/deployment.yaml
+- manifests/service.yaml
+- manifests/gateway.yaml
+- manifests/route.yaml
 
 images:
-  - name: roslinmahmud/log-generator
-    newTag: latest # The CI will overwrite "latest" with the real SHA
-  - name: roslinmahmud/log-response
-    newTag: latest
+- name: roslinmahmud/log-generator
+  newName: roslinmahmud/log-generator
+  newTag: fd4e104695095c2949ea25511ffc8050d482a9f7
+- name: roslinmahmud/log-response
+  newName: roslinmahmud/log-response
+  newTag: fd4e104695095c2949ea25511ffc8050d482a9f7
