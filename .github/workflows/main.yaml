@@ -1,91 +1,45 @@
-name: Release application
+name: Build and publish todo-app
 
 on:
   push:
-
-env:
-  PROJECT_ID: ${{ secrets.GKE_PROJECT }}
-  GKE_CLUSTER: dwk-cluster
-  GKE_ZONE: europe-north1-b
-  REGISTRY: europe-north1-docker.pkg.dev
-  REPOSITORY: dwk-repository
-  IMAGE: todo-app
-  SERVICE: todoapp-dep
-  BRANCH: ${{ github.ref_name }}
+    paths:
+      - 'todo-app/**'
+      - '.github/workflows/main.yaml'
 
 jobs:
-  build-publish-deploy:
-    name: Build, Publish and Deploy
+  build-publish:
+    name: Build, Push, Release
     runs-on: ubuntu-latest
-    environment: gke
-    defaults:
-      run:
-        working-directory: ./todo-app
+    permissions:
+      contents: write
+
     steps:
-      # 1. Get the code
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 2. Authenticate with Google Cloud
-      - uses: google-github-actions/auth@v2
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
         with:
-          credentials_json: '${{ secrets.GKE_SA_KEY }}'
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: 'Set up Cloud SDK'
-        uses: google-github-actions/setup-gcloud@v2
-
-      # 3. Get Cluster Credentials (so kubectl works)
-      - name: 'Get GKE credentials'
-        uses: 'google-github-actions/get-gke-credentials@v2'
-        with:
-          cluster_name: '${{ env.GKE_CLUSTER }}'
-          project_id: '${{ env.PROJECT_ID }}'
-          location: '${{ env.GKE_ZONE }}'
-
-      # 4. Login to Artifact Registry
-      - name: 'Set up Docker Buildx'
-        run: gcloud auth configure-docker "$REGISTRY" --quiet
-
-      # 5. Define a Unique Image Tag and Namespace
-      - name: 'Form the image name'
-        run: |
-          if [ "$BRANCH" == "main" ]; then
-            echo "K8S_NAMESPACE=project" >> $GITHUB_ENV
-          else
-            echo "K8S_NAMESPACE=$BRANCH" >> $GITHUB_ENV
-          fi
-          echo "IMAGE_TAG=$REGISTRY/$PROJECT_ID/$REPOSITORY/$IMAGE:$BRANCH-$GITHUB_SHA" >> $GITHUB_ENV
-
-      # 6. Build the Image
-      - name: Build
-        run: docker build --tag $IMAGE_TAG .
-
-      # 7. Publish (Push) to Google Artifact Registry
-      - name: Publish
-        run: docker push $IMAGE_TAG
-
-      # 8. Set up Kustomize (Tool to edit YAMLs on the fly)
-      - name: Set up Kustomize
-        uses: imranismail/setup-kustomize@v2.1.0
-
-      # 9. Deploy
-      - name: Deploy
+      # Build and publish todo-app
+      - name: Build and publish todo-app
+        working-directory: ./todo-app
         run: |-
-          # Create namespace if it doesn't exist
-          kubectl create namespace $K8S_NAMESPACE || true
-          
-          # Set the context to the new namespace
-          kubectl config set-context --current --namespace=$K8S_NAMESPACE
-          
-          # Update kustomization.yaml to overwrite the namespace
-          kustomize edit set namespace $K8S_NAMESPACE
-          
-          # Replaces the hardcoded image in your YAML with the new one we just built
-          kustomize edit set image roslinmahmud/todo-app=$IMAGE_TAG
-          
-          # Builds the final YAML and applies it to the cluster
-          kustomize build . | kubectl apply -f -
-          
-          # Waits for the rollout to finish successfully
-          kubectl rollout status deployment $SERVICE -n $K8S_NAMESPACE
-          kubectl get services -o wide -n $K8S_NAMESPACE
+          docker build --tag "roslinmahmud/todo-app:$GITHUB_SHA" .
+          docker push "roslinmahmud/todo-app:$GITHUB_SHA"
+
+      - name: Set up Kustomize
+        uses: imranismail/setup-kustomize@v2
+
+      - name: Use right image
+        working-directory: ./todo-app
+        run: |-
+          kustomize edit set image roslinmahmud/todo-app=roslinmahmud/todo-app:$GITHUB_SHA
+
+      - name: Commit kustomization.yaml to GitHub
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: 'todo-app/kustomization.yaml'
+          message: New version released ${{ github.sha }}
