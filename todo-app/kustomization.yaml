@@ -4,16 +4,17 @@ kind: Kustomization
 namespace: project
 
 resources:
-  - manifests/backend-config.yaml
-  - manifests/pv/PersistentVolumeClaim.yaml
-  - manifests/deployment.yaml
-  - manifests/service.yaml
-  - manifests/ingress.yaml
-  - manifests/postgres-statefulset.yaml
-  - manifests/cronjob.yaml
-  - manifests/backup-cronjob.yaml
-  - manifests/hpa.yaml
+- manifests/backend-config.yaml
+- manifests/pv/PersistentVolumeClaim.yaml
+- manifests/deployment.yaml
+- manifests/service.yaml
+- manifests/ingress.yaml
+- manifests/postgres-statefulset.yaml
+- manifests/cronjob.yaml
+- manifests/backup-cronjob.yaml
+- manifests/hpa.yaml
 
 images:
-  - name: roslinmahmud/todo-app
-    newTag: latest
+- name: roslinmahmud/todo-app
+  newName: roslinmahmud/todo-app
+  newTag: 97720a1e0f5713e6e91bfee702c0b78a08dc1cf8
