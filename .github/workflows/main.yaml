@@ -18,8 +18,15 @@ jobs:
       contents: write
 
     steps:
-      - name: Checkout
+      - name: Checkout for push
+        if: github.event_name == 'push'
         uses: actions/checkout@v4
+
+      - name: Checkout for release
+        if: github.event_name == 'release'
+        uses: actions/checkout@v4
+        with:
+          ref: main
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -65,4 +72,4 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add todo-app/manifests/overlays/
           git diff --staged --quiet || git commit -m "Update ${{ steps.vars.outputs.ENVIRONMENT }} image to ${{ steps.vars.outputs.IMAGE_TAG }}"
-          git push
+          git push origin HEAD:main
