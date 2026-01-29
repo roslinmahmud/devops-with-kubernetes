@@ -4,11 +4,11 @@ on:
   push:
     branches:
       - main
-    tags:
-      - 'v*'
     paths:
       - 'todo-app/**'
       - '.github/workflows/main.yaml'
+  release:
+    types: [published]
 
 jobs:
   build-publish:
@@ -30,37 +30,39 @@ jobs:
       - name: Set image tag
         id: vars
         run: |
-          if [[ $GITHUB_REF == refs/tags/* ]]; then
-            echo "IMAGE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            echo "IMAGE_TAG=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
             echo "ENVIRONMENT=production" >> $GITHUB_OUTPUT
           else
-            echo "IMAGE_TAG=$GITHUB_SHA" >> $GITHUB_OUTPUT
+            echo "IMAGE_TAG=${{ github.sha }}" >> $GITHUB_OUTPUT
             echo "ENVIRONMENT=staging" >> $GITHUB_OUTPUT
           fi
 
       - name: Build and publish todo-app
         working-directory: ./todo-app
-        run: |-
+        run: |
           docker build --tag "roslinmahmud/todo-app:${{ steps.vars.outputs.IMAGE_TAG }}" .
           docker push "roslinmahmud/todo-app:${{ steps.vars.outputs.IMAGE_TAG }}"
 
       - name: Set up Kustomize
         uses: imranismail/setup-kustomize@v2
 
-      - name: Update staging overlay
+      - name: Update staging image
         if: steps.vars.outputs.ENVIRONMENT == 'staging'
         working-directory: ./todo-app/manifests/overlays/staging
-        run: |-
+        run: |
           kustomize edit set image roslinmahmud/todo-app=roslinmahmud/todo-app:${{ steps.vars.outputs.IMAGE_TAG }}
 
-      - name: Update production overlay
+      - name: Update production image
         if: steps.vars.outputs.ENVIRONMENT == 'production'
-        working-directory: ./todo-app/manifests/overlays/production
-        run: |-
+        working-directory: ./todo-app/manifests/overlays/prod
+        run: |
           kustomize edit set image roslinmahmud/todo-app=roslinmahmud/todo-app:${{ steps.vars.outputs.IMAGE_TAG }}
 
-      - name: Commit kustomization changes
-        uses: EndBug/add-and-commit@v9
-        with:
-          add: 'todo-app/manifests/overlays/*/kustomization.yaml'
-          message: "Update ${{ steps.vars.outputs.ENVIRONMENT }} to version ${{ steps.vars.outputs.IMAGE_TAG }}"
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add todo-app/manifests/overlays/
+          git diff --staged --quiet || git commit -m "Update ${{ steps.vars.outputs.ENVIRONMENT }} image to ${{ steps.vars.outputs.IMAGE_TAG }}"
+          git push

@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/roslinmahmud/devops-with-kubernetes
     path: todo-app/manifests/overlays/prod
-    targetRevision: main
+    targetRevision: "*"  # Matches any tag
   destination:
     server: https://kubernetes.default.svc
     namespace: production
