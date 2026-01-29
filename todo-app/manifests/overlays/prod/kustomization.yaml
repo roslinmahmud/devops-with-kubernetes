@@ -16,13 +16,17 @@ patches:
   target:
     kind: Service
     name: todoapp-svc
-- target:
-    kind: Deployment
-    name: todoapp-dep
-  patch: |-
+- patch: |-
     apiVersion: apps/v1
     kind: Deployment
     metadata:
       name: todoapp-dep
     spec:
       replicas: 2
+  target:
+    kind: Deployment
+    name: todoapp-dep
+images:
+- name: roslinmahmud/todo-app
+  newName: roslinmahmud/todo-app
+  newTag: "4.9"
