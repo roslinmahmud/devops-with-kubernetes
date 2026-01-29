@@ -39,4 +39,9 @@ Goto ```http://localhost:8081/``` to access app home
 ## Kubernetes GKE Deployment
 Deploy with ```kubectl apply -k .```
 
+## ArgoCD deployment
+```kubectl apply -f todo-app/argocd/staging-application.yaml```
+
+```kubectl apply -f todo-app/argocd/production-application.yaml```
+
 
