@@ -15,26 +15,22 @@ jobs:
     name: Build, Push, Release
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
 
     steps:
-      - name: Checkout for push
-        if: github.event_name == 'push'
+      # 1. Checkout Application Code
+      - name: Checkout App Code
         uses: actions/checkout@v4
 
-      - name: Checkout for release
-        if: github.event_name == 'release'
-        uses: actions/checkout@v4
-        with:
-          ref: main
-
+      # 2. Login to Docker Hub
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Set image tag
+      # 3. Determine Tag & Environment
+      - name: Set variables
         id: vars
         run: |
           if [[ "${{ github.event_name }}" == "release" ]]; then
@@ -45,31 +41,54 @@ jobs:
             echo "ENVIRONMENT=staging" >> $GITHUB_OUTPUT
           fi
 
+      # 4. Build and Push Image
       - name: Build and publish todo-app
         working-directory: ./todo-app
         run: |
           docker build --tag "roslinmahmud/todo-app:${{ steps.vars.outputs.IMAGE_TAG }}" .
           docker push "roslinmahmud/todo-app:${{ steps.vars.outputs.IMAGE_TAG }}"
 
+      # 5. Set up Kustomize
       - name: Set up Kustomize
         uses: imranismail/setup-kustomize@v2
 
+      # --- NEW SECTION: OPS REPO HANDLING ---
+
+      # 6. Checkout the CONFIG (Ops) Repository
+      # We clone it into a subfolder named 'config-repo'
+      - name: Checkout Config Repo
+        uses: actions/checkout@v4
+        with:
+          repository: roslinmahmud/todo-app-ops  # <--- REPLACE THIS with your new config repo name
+          path: config-repo                        # <--- Clones into this temporary folder
+          token: ${{ secrets.GH_PAT }}             # <--- Requires your Personal Access Token
+
+      # 7. Update Staging (Inside Config Repo)
       - name: Update staging image
         if: steps.vars.outputs.ENVIRONMENT == 'staging'
-        working-directory: ./todo-app/manifests/overlays/staging
+        working-directory: config-repo/manifests/overlays/staging # <--- Note the path change
         run: |
           kustomize edit set image roslinmahmud/todo-app=roslinmahmud/todo-app:${{ steps.vars.outputs.IMAGE_TAG }}
 
+      # 8. Update Production (Inside Config Repo)
       - name: Update production image
         if: steps.vars.outputs.ENVIRONMENT == 'production'
-        working-directory: ./todo-app/manifests/overlays/prod
+        working-directory: config-repo/manifests/overlays/prod    # <--- Note the path change
         run: |
           kustomize edit set image roslinmahmud/todo-app=roslinmahmud/todo-app:${{ steps.vars.outputs.IMAGE_TAG }}
 
+      # 9. Commit and Push to CONFIG Repo
       - name: Commit and push changes
+        working-directory: config-repo             # <--- We run git commands inside the config repo
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add todo-app/manifests/overlays/
-          git diff --staged --quiet || git commit -m "Update ${{ steps.vars.outputs.ENVIRONMENT }} image to ${{ steps.vars.outputs.IMAGE_TAG }}"
-          git push origin HEAD:main
+          
+          # Check for changes
+          if [[ `git status --porcelain` ]]; then
+            git add .
+            git commit -m "Update ${{ steps.vars.outputs.ENVIRONMENT }} image to ${{ steps.vars.outputs.IMAGE_TAG }}"
+            git push origin HEAD:main
+          else
+            echo "No changes to commit"
+          fi
