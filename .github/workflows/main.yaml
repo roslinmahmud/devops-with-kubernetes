@@ -59,9 +59,9 @@ jobs:
       - name: Checkout Config Repo
         uses: actions/checkout@v4
         with:
-          repository: roslinmahmud/todo-app-ops  # <--- REPLACE THIS with your new config repo name
-          path: config-repo                        # <--- Clones into this temporary folder
-          token: ${{ secrets.GH_PAT }}             # <--- Requires your Personal Access Token
+          repository: roslinmahmud/todo-app-ops  
+          path: config-repo                        
+          token: ${{ secrets.GH_PAT }}             
 
       # 7. Update Staging (Inside Config Repo)
       - name: Update staging image
@@ -73,13 +73,13 @@ jobs:
       # 8. Update Production (Inside Config Repo)
       - name: Update production image
         if: steps.vars.outputs.ENVIRONMENT == 'production'
-        working-directory: config-repo/manifests/overlays/prod    # <--- Note the path change
+        working-directory: config-repo/manifests/overlays/prod   
         run: |
           kustomize edit set image roslinmahmud/todo-app=roslinmahmud/todo-app:${{ steps.vars.outputs.IMAGE_TAG }}
 
       # 9. Commit and Push to CONFIG Repo
       - name: Commit and push changes
-        working-directory: config-repo             # <--- We run git commands inside the config repo
+        working-directory: config-repo            
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
